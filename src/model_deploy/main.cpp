@@ -34,20 +34,19 @@ void tf(); // detect gesture to select the maximum angle
 void acc(); 
 
 Thread angle_thread;
-Thread t;
 Ticker flip;
 constexpr int kTensorArenaSize = 60 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
 double theta = 0;
 double vector_length(int16_t *DataXYZ);
-int num_data = 0;
+int num_d = 0;
 bool acc_mode = false;
 volatile int message_num = 0;
 volatile int arrivedcount = 0;
 volatile bool closed = false;
 
 const char* topic = "Mbed";
-
+bool go;
 
 void acc_get(Arguments *in, Reply *out) { // RPC2 CALL
     printf("acc_mode\n");
@@ -63,7 +62,7 @@ void acc() {
     BSP_ACCELERO_AccGetXYZ(stationary); // acc of stationary
     //printf("stationary_g: %d, %d, %d\n", stationary[0], stationary[1], stationary[2]);
 
-    while (acc_mode) {
+    while (acc_mode && num_d < 10) {
       BSP_ACCELERO_AccGetXYZ(pDataXYZ);
       //printf("current_acc: %d, %d, %d ", pDataXYZ[0], pDataXYZ[1], pDataXYZ[2]);
       cos = (pDataXYZ[0]*stationary[0] + pDataXYZ[1]*stationary[1] + pDataXYZ[2]*stationary[2]) / (vector_length(pDataXYZ) * vector_length(stationary));
@@ -71,20 +70,15 @@ void acc() {
       printf("Theta = %lf\n", theta);
       if (theta >= 60) {
         uLCD.printf("0\n");
-        num_buff[num_data] = 0;
+        num_buff[num_d] = 0;
       }
       else if (theta < 60 && theta >= 30) {
         uLCD.printf("1\n");
-        num_buff[num_data] = 1;
+        num_buff[num_d] = 1;
       }
       else if (theta < 30) {
         uLCD.printf("2\n");
-        num_buff[num_data] = 2;
-      }
-      num_data++;
-      if (num_data > 10) {
-        acc_mode = false;
-        mqtt_thread.terminate(); 
+        num_buff[num_d] = 2;
       }
       ThisThread::sleep_for(500ms);
 // t.start(&tf);
@@ -300,10 +294,9 @@ int main() {
     mqtt_thread.start(callback(&mqtt_queue, &EventQueue::dispatch_forever));
 
     while(1) {
-      
+       
       memset(buf, 0, 256);      // clear buffer
-      if (acc_mode) 
-        flip.attach(mqtt_queue.event(&publish_message, &client), 100ms);
+     flip.attach(mqtt_queue.event(&publish_message, &client), 500ms);
       for(int i=0; ; i++) {
             char recv = fgetc(devin);
             if (recv == '\n') {
@@ -315,7 +308,9 @@ int main() {
       //Call the static call method on the RPC class
       RPC::call(buf, outbuf);
       printf("%s\r\n", outbuf);
+      
     }
+    
     int num = 0;
     while (num != 5) {
             client.yield(100);
@@ -327,7 +322,7 @@ int main() {
       client.yield(500);
       ThisThread::sleep_for(500ms);
     }
-
+    
     printf("Ready to close MQTT Network......\n");
 
     if ((rc = client.unsubscribe(topic)) != 0) {
@@ -358,16 +353,17 @@ void publish_message(MQTT::Client<MQTTNetwork, Countdown>* client) {
     MQTT::Message message;
     char buff[100];
     
-    if (num_data < 10) {
-      sprintf(buff, "data: %d, %d\n", num_buff[num_data], num_data);
+    if (num_d < 10) {
+      sprintf(buff, "data: %d, %d\n", num_buff[num_d], num_d);
       message.qos = MQTT::QOS0;
       message.retained = false;
       message.dup = false;
       message.payload = (void*) buff;
       message.payloadlen = strlen(buff) + 1;
       int rc = client->publish(topic, message);
-      printf("rc:  %d\r\n", rc);
+      // printf("rc:  %d\r\n", rc);
       printf("%s\r\n", buff);
+      num_d++;
     }
 }
 
