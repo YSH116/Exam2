@@ -133,7 +133,7 @@ int PredictGesture(float* output) {
   return this_predict;
 }
 
-/*void tf() {
+void tf() {
 
   // Whether we should clear the buffer next time we fetch data
   bool should_clear_buffer = false;
@@ -236,7 +236,7 @@ int PredictGesture(float* output) {
         error_reporter->Report(config.output_message[gesture_index]);
     }
   }
-}*/
+}
 
 int main() {
     BSP_ACCELERO_Init();
