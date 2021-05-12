@@ -7,7 +7,9 @@
 
 ![Screenshot from 2021-05-12 02-56-08](https://user-images.githubusercontent.com/74852896/117957871-0e60a300-b34d-11eb-8e53-b3e404fe2eef.png)
 ![Screenshot from 2021-05-12 02-54-58](https://user-images.githubusercontent.com/74852896/117957873-0ef93980-b34d-11eb-9be6-e3411ee7bad1.png)
-![Uploading 20210512_175707_HDR.jpg…]()
+![20210512_175707_HDR](https://user-images.githubusercontent.com/74852896/117958898-0f460480-b34e-11eb-9b1c-e87a8a5f1255.jpg)
+
+
 
 
 附圖為結果，第一張表示我開始量測不同角度，第二張是我利用mqtt回傳值，此時皆為大於60，因此第一位數皆為零，而第二個數從0數到9，最後一張則是我在LCD上顯示我的定義id。
